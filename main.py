@@ -29,8 +29,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.include_router(tasks.router, prefix="/app/v2")
-app.include_router(stats.router, prefix="/app/v2")
+app.include_router(tasks.router, prefix="/api/v2")
+app.include_router(stats.router, prefix="/api/v2")
 
 @app.get("/")
 async def read_root() -> dict:

@@ -89,12 +89,15 @@ async def get_task_by_id(task_id: int, db: AsyncSession = Depends(get_async_sess
 # POST - СОЗДАНИЕ НОВОЙ ЗАДАЧИ
 @router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 async def create_task(task: TaskCreate, db: AsyncSession = Depends(get_async_session)) -> TaskResponse:
+    # Определяем срочность
+    delta = task.deadline_at- datetime.now()
+    is_urgent = delta.days < 3
     # Определяем квадрант
-    if task.is_important and task.is_urgent:
+    if task.is_important and is_urgent:
         quadrant = "Q1"
-    elif task.is_important and not task.is_urgent:
+    elif task.is_important and not is_urgent:
         quadrant = "Q2"
-    elif not task.is_important and task.is_urgent:
+    elif not task.is_important and is_urgent:
         quadrant = "Q3"
     else:
         quadrant = "Q4"
@@ -103,10 +106,11 @@ async def create_task(task: TaskCreate, db: AsyncSession = Depends(get_async_ses
         title=task.title,
         description=task.description,
         is_important=task.is_important,
-        is_urgent=task.is_urgent,
+        #is_urgent=is_urgent,                   -- больше не используется
         quadrant=quadrant,
-        completed=False # Новая задача всегда не выполнена
+        completed=False,
         # created_at заполнится автоматически (server_default=func.now())
+        deadline_at=task.deadline_at
     )
  
     db.add(new_task) # Добавляем в сессию (еще не в БД!)
@@ -136,13 +140,16 @@ async def update_task(task_id: int, task_update: TaskUpdate, db: AsyncSession = 
     for field, value in update_data.items():
         setattr(task, field, value) # task.field = value
     
-    # ШАГ 4: Пересчитываем квадрант, если изменились важность или срочность
-    if "is_important" in update_data or "is_urgent" in update_data:
-        if task.is_important and task.is_urgent:
+    # ШАГ 4: Пересчитываем квадрант, если изменились важность или срок завершения
+    delta = task.deadline_at - datetime.now()
+    is_urgent = delta.days < 3
+
+    if "is_important" in update_data or "deadline_at" in update_data:
+        if task.is_important and is_urgent:
             task.quadrant = "Q1"
-        elif task.is_important and not task.is_urgent:
+        elif task.is_important and not is_urgent:
             task.quadrant = "Q2"
-        elif not task.is_important and task.is_urgent:
+        elif not task.is_important and is_urgent:
             task.quadrant = "Q3"
         else:
             task.quadrant = "Q4"

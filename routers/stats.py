@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from models import Task
+from typing import List
 from database import get_async_session
+from datetime import datetime, timedelta
 
 router = APIRouter(
     prefix="/stats",
@@ -29,3 +31,29 @@ async def get_tasks_stats(db: AsyncSession = Depends(get_async_session)) -> dict
         "by_quadrant": by_quadrant,
         "by_status": by_status
     }
+
+@router.get("/urgent", response_model=List[dict])
+async def get_tasks_stats(db: AsyncSession = Depends(get_async_session)) -> dict:
+    now = datetime.now()
+    result = await db.execute(
+        select(Task).where(and_(
+            Task.deadline_at >= now,
+            Task.deadline_at <= now + timedelta(days=3)
+            )
+        )
+    )
+    tasks = result.scalars().all()
+    formatted_tasks = []
+    for task in tasks:
+        remaining_days = (task.deadline_at - now).days
+        
+        formatted_tasks.append({
+            "id": task.id,
+            "title": task.title,
+            "description": task.description,
+            "remaining_days": max(remaining_days, 0)  # предотвращаем отрицательные дни
+        })
+
+    return formatted_tasks
+
+    return formated_tasks
