@@ -28,6 +28,12 @@ class Task(Base):
         default=False # По умолчанию False
     )
 
+    is_urgent = Column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
     quadrant = Column(
         String(2), # Максимум 2 символа: "Q1", "Q2", "Q3", "Q4"
         nullable=False
@@ -52,7 +58,7 @@ class Task(Base):
 
     deadline_at = Column(
         DateTime(timezone=True),
-        nullable=False
+        nullable=True
     )
  
     def __repr__(self) -> str:
@@ -68,5 +74,6 @@ class Task(Base):
             "quadrant": self.quadrant,
             "completed": self.completed,
             "created_at": self.created_at,
-            "completed_at": self.completed_at
+            "completed_at": self.completed_at,
+            "deadline_at": self.deadline_at
         }

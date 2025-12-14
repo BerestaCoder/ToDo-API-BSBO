@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import datetime
 
 # Базовая схема для Task.
-# Все поля, которые есть в нашей "базе данных" tasks_db
 class TaskBase(BaseModel):
     title: str = Field(
         ..., # троеточие означает "обязательное поле"
@@ -20,9 +19,8 @@ class TaskBase(BaseModel):
         ...,
         description="Важность задачи"
     )
-    deadline_at: datetime = Field(
-        ...,
-        datetime_format='%Y-%m-%d %H:%M:%S',
+    deadline_at: Optional[datetime] = Field(
+        None,
         description="Срок задачи"
     )
 
@@ -51,7 +49,6 @@ class TaskUpdate(BaseModel):
     )
     deadline_at: Optional[datetime] = Field(
         None,
-        datetime_format='%Y-%m-%d %H:%M:%S',
         description="Срок задачи"
     )
     completed: Optional[bool] = Field(
@@ -72,6 +69,10 @@ class TaskResponse(TaskBase):
         description="Квадрант матрицы Эйзенхауэра (Q1, Q2, Q3, Q4)",
         examples=["Q1"]
     )
+    is_urgent: bool = Field(
+        ...,
+        description="Срочность задачи"
+    )
     completed: bool = Field(
         default=False,
         description="Статус выполнения задачи"
@@ -80,10 +81,38 @@ class TaskResponse(TaskBase):
         ...,
         description="Дата и время создания задачи"
     )
-    deadline_at: datetime = Field(
-        ...,
-        datetime_format='%Y-%m-%d %H:%M:%S',
-        description="Срок задачи"
+    class Config:
+        from_attributes = True
+    completed_at: Optional[datetime]  = Field(
+        None,
+        description="Дата и время завершения задачи"
     )
-class Config: # Config класс для работы с ORM (понадобится посде подключения СУБД)
-    from_attributes = True
+    days_until_deadline: Optional[int]  = Field(
+        None,
+        description="Количество дней до дедлайна"
+    )
+    status_message: Optional[str] = Field(
+        None,
+        description="Сообщение о статусе задачи"
+    )
+
+    class Config:
+        from_attributes = True
+
+class TimingStatsResponse(BaseModel):
+    completed_on_time: int = Field(
+        ...,
+        description="Количество задач, завершенных в срок"
+    )
+    completed_late: int = Field(
+        ...,
+        description="Количество задач, завершенных с нарушением сроков"
+    )
+    on_plan_pending: int = Field(
+        ...,
+        description="Количество задач в работе, выполняемых в соответствии с планом"
+    )
+    overtime_pending: int = Field(
+        ...,
+        description="Количество просроченных незавершенных задач"
+    )
