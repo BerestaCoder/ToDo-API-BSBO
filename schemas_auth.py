@@ -43,3 +43,8 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: Optional[int] = None
     role: Optional[str] = None
+
+# Данные для смена пароля
+class ChangePassword(BaseModel):
+    old_password: str
+    new_password: str

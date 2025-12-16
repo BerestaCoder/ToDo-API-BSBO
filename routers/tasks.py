@@ -37,7 +37,7 @@ async def get_all_tasks(
         task_dict['days_until_deadline'] = calculate_days_until_deadline(task.deadline_at)
         task_with_days.append(TaskResponse(**task_dict))
 
-        return task_with_days
+    return task_with_days
 
 # GET TASKS BY QUADRANT - Получить задачи по квадранту
 @router.get("/quadrant/{quadrant}", response_model=List[TaskResponse])

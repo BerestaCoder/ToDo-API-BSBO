@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from database import init_db, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
-from routers import tasks, stats, auth
+from routers import tasks, stats, auth, admin
 from scheduler import start_scheduler
 
 @asynccontextmanager
@@ -39,6 +39,7 @@ app = FastAPI(
 app.include_router(auth.router, prefix="/api/v3")
 app.include_router(tasks.router, prefix="/api/v3")
 app.include_router(stats.router, prefix="/api/v3")
+app.include_router(admin.router, prefix="/api/v3")
 
 @app.get("/")
 async def read_root() -> dict:
